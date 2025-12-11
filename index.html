@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graduate Certificate Gallery</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🎓 Graduate Certificate Gallery</h1>
+                    <p class="subtitle">NFT-based Academic Credentials</p>
+                </div>
+                <div id="walletSection">
+                    <button id="connectWallet" class="btn-connect" onclick="connectWallet()">Connect Wallet</button>
+                    <div id="walletInfo" class="wallet-info" style="display: none;">
+                        <div class="wallet-indicator"></div>
+                        <span id="walletAddress" class="wallet-address"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div id="connectPrompt" class="connect-prompt">
+                <div class="connect-card">
+                    <h2>Welcome to Graduate Certificate Gallery</h2>
+                    <p>Connect your wallet to view NFT certificates</p>
+                    <button class="btn-connect-large" onclick="connectWallet()">
+                        Connect MetaMask
+                    </button>
+                </div>
+            </div>
+
+            <div id="mainApp" style="display: none;">
+                <div class="stats-section" id="statsSection">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalCerts">0</div>
+                        <div class="stat-label">Total Certificates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalPrograms">0</div>
+                        <div class="stat-label">Programs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="myCerts">0</div>
+                        <div class="stat-label">My Certificates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="filteredCount">0</div>
+                        <div class="stat-label">Filtered Results</div>
+                    </div>
+                </div>
+
+                <div class="view-toggle">
+                    <button id="allCertsBtn" class="toggle-btn active" onclick="setViewMode('all')">
+                        All Certificates
+                    </button>
+                    <button id="myCertsBtn" class="toggle-btn" onclick="setViewMode('my')">
+                        My Certificates
+                    </button>
+                </div>
+
+                <div class="controls-section">
+                    <div class="search-bar">
+                        <div class="search-input-wrapper">
+                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Search by graduate name..." onkeyup="applyFilters()">
+                            <button id="clearSearch" class="clear-search" style="display: none;" onclick="clearSearch()">✕</button>
+                        </div>
+                        <div id="searchHint" class="search-hint" style="display: none;"></div>
+                    </div>
+
+                    <div class="filter-panel">
+                        <div class="filter-header">
+                            <button class="filter-toggle" onclick="toggleFilters()">
+                                <svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                                </svg>
+                                <span>Filters</span>
+                                <span id="filterBadge" class="filter-badge" style="display: none;">Active</span>
+                            </button>
+                            <button id="resetFiltersBtn" class="reset-filters" style="display: none;" onclick="resetFilters()">
+                                Clear All
+                            </button>
+                        </div>
+
+                        <div id="filterContent" class="filter-content" style="display: none;">
+                            <div class="filter-group">
+                                <label class="filter-label">Program</label>
+                                <select id="programFilter" class="filter-select" onchange="applyFilters()">
+                                    <option value="All">All</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <label class="filter-label">Grade</label>
+                                <select id="gradeFilter" class="filter-select" onchange="applyFilters()">
+                                    <option value="All">All</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-group">
+                                <label class="filter-label">Graduation Year</label>
+                                <select id="yearFilter" class="filter-select" onchange="applyFilters()">
+                                    <option value="All">All</option>
+                                </select>
+                            </div>
+
+                            <div id="activeFilters" class="active-filters" style="display: none;">
+                                <div class="active-filters-title">Active Filters:</div>
+                                <div id="filterTags" class="filter-tags"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loadingSpinner" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading certificates...</p>
+                </div>
+
+                <div id="certificatesGrid" class="certificates-grid" style="display: none;"></div>
+
+                <div id="noResults" class="no-results" style="display: none;">
+                    <h3>No certificates found</h3>
+                    <p>Try adjusting your search or filter criteria</p>
+                    <button class="btn-primary" onclick="resetFilters()">Reset Filters</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Graduate Certificate Gallery. Built with ❤️ on Web3</p> 
+            <div class="footer-links">
+                <a href="#" id="contractLink" target="_blank">View Contract (BscScan)</a>
+                <a href="#" id="openseaLink" target="_blank">NFT Viewer</a>
+                <a href="https://github.com" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="certModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
